@@ -12,9 +12,10 @@ import { createServer as createViteServer } from "vite";
 import { Player, WeaponDrop, WeaponType, Bullet, Grenade } from "./src/types";
 import { getMapById, MAPS } from "./src/maps";
 
-// Helper for ESModules in server.ts
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ESModule checking helpers (safely structured without block scope conflicts)
+const isESM = typeof import.meta !== "undefined" && !!import.meta?.url;
+const esmFilename = isESM ? fileURLToPath(import.meta.url) : "";
+const esmDirname = isESM ? path.dirname(esmFilename) : "";
 
 interface GameRoom {
   id: string;
