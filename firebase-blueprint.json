@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Customizable tactical profile of a signed-in player.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Google Auth UID." },
+        "displayName": { "type": "string", "description": "Callsign derived from Google Auth name or custom edits." },
+        "email": { "type": "string", "description": "Google account email address (highly isolated)." },
+        "photoURL": { "type": "string", "description": "Optional profile URL." },
+        "wins": { "type": "integer", "description": "Count of rounds or matches won." },
+        "kills": { "type": "integer", "description": "Cumulative total kills." },
+        "deaths": { "type": "integer", "description": "Cumulative total deaths." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Registration date." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last profile refresh." }
+      },
+      "required": ["uid", "displayName", "email", "wins", "kills", "deaths"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User files tracking stats, ranks, high scores, and persistent customization."
+    }
+  }
+}

@@ -8,6 +8,8 @@ import { ArrowLeft, Send, Shield, Zap, RefreshCw, Layers, Award, Radio } from "l
 import { Player, WeaponType, Bullet, Grenade, WeaponDrop, GameMap, WEAPON_DEFAULTS, AvatarConfig } from "../types";
 import { getMapById, MAPS } from "../maps";
 import { sound } from "../audio";
+import { auth, db } from "../firebase";
+import { doc, updateDoc, increment } from "firebase/firestore";
 
 interface CanvasGameProps {
   roomId: string;
@@ -312,6 +314,23 @@ export default function CanvasGame({
               createBloodParticles(victim.x, victim.y, 35, 0, 0);
             }
 
+            // Sync permanent combat stats to Firebase Firestore
+            if (auth.currentUser) {
+              const userRef = doc(db, "users", auth.currentUser.uid);
+              if (victimId === currentIdRef.current) {
+                updateDoc(userRef, {
+                  deaths: increment(1),
+                  updatedAt: new Date().toISOString()
+                }).catch(err => console.error("Could not write death stat:", err));
+              }
+              if (attackerId === currentIdRef.current && victimId !== attackerId) {
+                updateDoc(userRef, {
+                  kills: increment(1),
+                  updatedAt: new Date().toISOString()
+                }).catch(err => console.error("Could not write kill stat:", err));
+              }
+            }
+
             // Append kill notification
             const newKill: KillFeedEvent = {
               id: Math.random().toString(),
@@ -446,7 +465,7 @@ export default function CanvasGame({
         data: {
           victimId: lp.id,
           attackerId,
-          weaponName: WEAPON_DEFAULTS[activeGun].name
+          weaponName: attackerId === lp.id ? "Gravity Abyss" : WEAPON_DEFAULTS[activeGun].name
         }
       }));
     }
@@ -872,42 +891,38 @@ export default function CanvasGame({
           lp.vx *= 0.74;
         }
 
-        // Jump & Jetpack Boots
-        const isUp = keyMapRef.current["w"] || keyMapRef.current[" "] || keyMapRef.current["arrowup"];
-        if (isUp && lp.jetpackFuel > 0.0) {
-          // Thruster acceleration upwards
-          lp.vy -= 0.65;
-          lp.jetpackFuel = Math.max(0, lp.jetpackFuel - 0.75);
-          lp.isJetpacking = true;
-
-          // Sound trigger for boots sizzle
-          sound.setJetpackActive(true);
-
-          // Emit jetpack smoke fuel exhaust
-          if (Math.random() < 0.45) {
-            particlesRef.current.push({
-              x: lp.x - (lp.isFacingLeft ? -6 : 14),
-              y: lp.y + 12,
-              vx: (lp.isFacingLeft ? -1 : 1) * 2 + (Math.random() - 0.5) * 1.5,
-              vy: 3.5 + Math.random() * 2,
-              color: Math.random() < 0.5 ? "#f97316" : "#64748b", // orange fires / gray fumes
-              size: Math.random() * 6 + 3,
-              alpha: 0.8,
-              life: 0,
-              maxLife: Math.random() * 20 + 10,
-              type: "smoke"
-            });
-          }
-        } else {
-          lp.isJetpacking = false;
-          // Quiet boots thrusters audio
-          sound.setJetpackActive(false);
-
-          // Return energy if standing on solid elements
-          if (lp.vy === 0) {
-            lp.jetpackFuel = Math.min(JETPACK_MAX_FUEL, lp.jetpackFuel + 0.45);
-          }
-        }
+         // Jump & Jetpack Boots
+         const isUp = keyMapRef.current["w"] || keyMapRef.current[" "] || keyMapRef.current["arrowup"];
+         if (isUp) {
+           // Thruster acceleration upwards
+           lp.vy -= 0.65;
+           lp.jetpackFuel = 100; // Unlimited jetpack boots flight fuel
+           lp.isJetpacking = true;
+ 
+           // Sound trigger for boots sizzle
+           sound.setJetpackActive(true);
+ 
+           // Emit jetpack smoke fuel exhaust
+           if (Math.random() < 0.45) {
+             particlesRef.current.push({
+               x: lp.x - (lp.isFacingLeft ? -6 : 14),
+               y: lp.y + 12,
+               vx: (lp.isFacingLeft ? -1 : 1) * 2 + (Math.random() - 0.5) * 1.5,
+               vy: 3.5 + Math.random() * 2,
+               color: Math.random() < 0.5 ? "#f97316" : "#64748b", // orange fires / gray fumes
+               size: Math.random() * 6 + 3,
+               alpha: 0.8,
+               life: 0,
+               maxLife: Math.random() * 20 + 10,
+               type: "smoke"
+             });
+           }
+         } else {
+           lp.isJetpacking = false;
+           // Quiet boots thrusters audio
+           sound.setJetpackActive(false);
+           lp.jetpackFuel = 100; // Keep full when resting
+         }
 
         // Mouse angle calculations
         const screenX = lp.x - viewOffsetRef.current.x;
@@ -930,6 +945,9 @@ export default function CanvasGame({
             }
             setHudWeapons([...lp.weapons]);
           }
+        } else if (gun.clipAmmo === 0 && gun.reserveAmmo > 0) {
+          // Automatic reload when magazine is empty
+          triggerReload();
         }
 
         // Handle continuous weapon shooting (automatic assault weapons like Rifle)
@@ -954,8 +972,18 @@ export default function CanvasGame({
         lp.vx = Math.max(-10, Math.min(10, lp.vx));
         lp.vy = Math.max(-12, Math.min(12, lp.vy));
 
+        // Apply velocity to position
+        lp.x += lp.vx;
+        lp.y += lp.vy;
+
         // Let's resolve dynamic map collision walls for Local Player
         resolveStaticCollisions(lp, m);
+
+        // Falling Out of Bounds Death Check
+        if (!lp.isDead && lp.y > m.height + 150) {
+          lp.health = 0;
+          handlePlayerDeath(lp.id);
+        }
 
         // Periodically emit local character coordinates down websocket stream
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {

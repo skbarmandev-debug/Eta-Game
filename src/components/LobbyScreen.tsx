@@ -15,6 +15,8 @@ interface LobbyScreenProps {
   roomId: string;
   setRoomId: (r: string) => void;
   onJoin: () => void;
+  userData?: any;
+  onSignOut?: () => void;
 }
 
 const PRESET_COLORS = [
@@ -56,7 +58,9 @@ export default function LobbyScreen({
   setAvatar,
   roomId,
   setRoomId,
-  onJoin
+  onJoin,
+  userData,
+  onSignOut
 }: LobbyScreenProps) {
   const [copied, setCopied] = useState(false);
 
@@ -102,16 +106,38 @@ export default function LobbyScreen({
           </div>
         </div>
 
-        {/* User Status Badge */}
-        <div className="flex items-center gap-3 bg-[#121212] border border-[#1e293b] py-2 px-4 rounded-full shadow-lg">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-ping" />
-          <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e] absolute" />
-          <span className="font-semibold text-sm max-w-[120px] truncate text-slate-200">
-            {playerName.trim() || "Recruit"}
-          </span>
-          <span className="bg-emerald-500/10 text-[#22c55e] text-[10px] px-2 py-0.5 rounded-full font-bold border border-[#22c55e]/20">
-            Rank 42
-          </span>
+        {/* User Status Badge & google details */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 bg-[#121212] border border-[#1e293b] py-2 px-4 rounded-full shadow-lg relative">
+            {userData?.photoURL ? (
+              <img
+                src={userData.photoURL}
+                alt="Profile"
+                className="w-5 h-5 rounded-full object-cover border border-[#1e293b]"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-ping" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e] absolute" />
+              </>
+            )}
+            <span className="font-semibold text-sm max-w-[120px] truncate text-slate-200">
+              {playerName.trim() || "Recruit"}
+            </span>
+            <span className="bg-emerald-500/10 text-[#22c55e] text-[10px] px-2 py-0.5 rounded-full font-bold border border-[#22c55e]/20">
+              Rank {Math.max(1, Math.floor((userData?.kills ?? 0) / 10) + 1)}
+            </span>
+          </div>
+
+          {onSignOut && (
+            <button
+              onClick={onSignOut}
+              className="px-4 py-2 border border-red-500/20 hover:border-red-500/40 text-red-500/95 hover:bg-red-500/5 text-xs font-bold rounded-full transition-all active:scale-95 uppercase cursor-pointer"
+            >
+              Sign Out
+            </button>
+          )}
         </div>
       </header>
 
@@ -482,26 +508,36 @@ export default function LobbyScreen({
             <div className="space-y-2 mt-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-medium">Total Kills</span>
-                <span className="font-bold text-[#22c55e] text-sm">1,420</span>
+                <span className="font-bold text-[#22c55e] text-sm">
+                  {userData?.kills ?? 0}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-medium">Deaths</span>
-                <span className="font-bold text-slate-200">842</span>
+                <span className="font-bold text-slate-200">
+                  {userData?.deaths ?? 0}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-medium">K/D Ratio</span>
-                <span className="font-bold text-[#22c55e]">1.68</span>
+                <span className="font-bold text-[#22c55e]">
+                  {userData?.deaths
+                    ? (userData.kills / userData.deaths).toFixed(2)
+                    : (userData?.kills ?? 0).toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium">Wins</span>
-                <span className="font-bold text-slate-200">124</span>
+                <span className="text-slate-400 font-medium font-bold">Wins</span>
+                <span className="font-bold text-slate-200">{userData?.wins ?? 0}</span>
               </div>
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-900 flex justify-between items-center">
             <span className="text-[10px] text-slate-500 font-medium">Overall Season Prestige</span>
-            <span className="text-[10px] text-[#22c55e] font-bold">Tier III</span>
+            <span className="text-[10px] text-[#22c55e] font-bold">
+              Level {Math.max(1, Math.floor((userData?.kills ?? 0) / 25) + 1)}
+            </span>
           </div>
         </div>
 
