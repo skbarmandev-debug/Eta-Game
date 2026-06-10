@@ -1,0 +1,8 @@
+{
+  "name": "Eta Online",
+  "description": "A real-time multiplayer 2D side-scrolling platformer shooter inspired by Mini Militia, featuring jetpacks, dynamic physics, customizable avatars, multiple weapon types (rifles, shotguns, rocket launchers), grenade mechanics, and room-based matchmaking with sharable invite links.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
