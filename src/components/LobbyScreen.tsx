@@ -568,10 +568,14 @@ export default function LobbyScreen({
 
       </div>
 
-      <div className="w-full max-w-7xl mx-auto mt-8 mb-4 flex justify-between items-center border-t border-slate-900 pt-4 text-[10px] text-slate-600 font-semibold z-10">
+      <div className="w-full max-w-7xl mx-auto mt-8 mb-4 flex flex-col md:flex-row justify-between items-center gap-3 border-t border-slate-900 pt-4 text-[10px] text-slate-600 font-semibold z-10">
         <div className="flex items-center gap-1">
           <ShieldAlert className="w-3.5 h-3.5" />
           Runs securely on cloud run container sockets.
+        </div>
+        <div className="flex items-center gap-1 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10 text-slate-400">
+          <span>Developed by:</span>
+          <span className="text-emerald-400 font-black tracking-wide uppercase">Subroto Kumar Barman</span>
         </div>
         <div>
           Build Build-v3.0.0

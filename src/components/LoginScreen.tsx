@@ -93,9 +93,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             </div>
           </div>
 
-          <div className="mt-8 text-[11px] text-slate-600 flex items-center gap-1.5 border-t border-[#1e293b]/50 pt-4">
-            <Info className="w-3.5 h-3.5" />
-            Powered by Firebase Auth & Firestore Enterprise Sandbox
+          <div className="mt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-t border-[#1e293b]/50 pt-4">
+            <div className="text-[11px] text-slate-600 flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5" />
+              Powered by Firebase Auth & Firestore Enterprise Sandbox
+            </div>
+            <div className="flex items-center gap-1 bg-emerald-500/5 px-2.5 py-1 rounded-full border border-emerald-500/10 text-[10px] text-slate-400 font-bold">
+              <span>Developed by:</span>
+              <span className="text-emerald-400 font-black tracking-wide uppercase">Subroto Kumar Barman</span>
+            </div>
           </div>
         </div>
 

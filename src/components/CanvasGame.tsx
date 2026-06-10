@@ -2189,7 +2189,11 @@ export default function CanvasGame({
           </div>
 
           {/* Bottom-Right: Exit buttons */}
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 bg-slate-900/80 border border-slate-800 px-3 py-2 rounded-xl text-[10px] text-slate-400 font-semibold shadow-lg backdrop-blur-md">
+              <span>Developed by:</span>
+              <span className="text-emerald-400 font-black tracking-wide uppercase">Subroto Kumar Barman</span>
+            </div>
             <button
               onClick={onLeave}
               className="px-4 py-2.5 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 rounded-xl text-rose-400 font-bold text-xs flex items-center gap-1.5 transition-all shadow-lg backdrop-blur-md cursor-pointer"
